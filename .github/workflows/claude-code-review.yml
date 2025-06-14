@@ -7,6 +7,7 @@ on:
     paths:
       - 'src/**'
       - 'lib/**'
+      - '.github/workflows/**'
       - '!**/*.md'
       - '!**/package-lock.json'
 
