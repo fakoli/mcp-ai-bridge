@@ -1,11 +1,13 @@
 import { jest } from '@jest/globals';
 import { 
   sanitizeInput, 
-  detectPromptInjection, 
-  filterExplicitContent, 
   validatePromptSecurity,
   securityCheck,
   SECURITY_LEVELS
+} from '../src/security-optimized.js';
+import { 
+  detectPromptInjection, 
+  filterExplicitContent
 } from '../src/security.js';
 import { validatePrompt } from '../src/validators.js';
 import { ValidationError } from '../src/errors.js';

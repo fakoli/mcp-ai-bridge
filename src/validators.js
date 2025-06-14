@@ -1,6 +1,6 @@
 import { ValidationError } from './errors.js';
 import { DEFAULTS, ERROR_MESSAGES, MODELS } from './constants.js';
-import { securityCheck } from './security.js';
+import { securityCheck } from './security-optimized.js';
 
 export function validatePrompt(prompt) {
   if (!prompt || typeof prompt !== 'string') {

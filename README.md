@@ -67,10 +67,29 @@ The server will check for environment variables in this order:
    MCP_SERVER_VERSION=1.0.0
    
    # Security Configuration
-   SECURITY_LEVEL=moderate              # basic, moderate, strict
-   BLOCK_EXPLICIT_CONTENT=true         # Enable content filtering
-   DETECT_PROMPT_INJECTION=true        # Enable injection detection
-   SANITIZE_INPUT=true                  # Enable input sanitization
+   SECURITY_LEVEL=moderate              # disabled, basic, moderate, strict
+   
+   # Content Filtering (granular controls)
+   BLOCK_EXPLICIT_CONTENT=true         # Master content filter toggle
+   BLOCK_VIOLENCE=true                  # Block violent content
+   BLOCK_ILLEGAL_ACTIVITIES=true       # Block illegal activity requests
+   BLOCK_ADULT_CONTENT=true             # Block adult/sexual content
+   
+   # Injection Detection (granular controls)
+   DETECT_PROMPT_INJECTION=true        # Master injection detection toggle
+   DETECT_SYSTEM_PROMPTS=true           # Detect system role injections
+   DETECT_INSTRUCTION_OVERRIDE=true     # Detect "ignore instructions" attempts
+   
+   # Input Sanitization (granular controls)
+   SANITIZE_INPUT=true                  # Master sanitization toggle
+   REMOVE_SCRIPTS=true                  # Remove script tags and JS
+   LIMIT_REPEATED_CHARS=true            # Limit DoS via repeated characters
+   
+   # Performance & Flexibility
+   ENABLE_PATTERN_CACHING=true          # Cache compiled patterns for speed
+   MAX_PROMPT_LENGTH_FOR_DEEP_SCAN=1000 # Skip deep scanning for long prompts
+   ALLOW_EDUCATIONAL_CONTENT=false      # Whitelist educational content
+   WHITELIST_PATTERNS=                  # Comma-separated regex patterns to allow
    ```
 
 ## Configuration in Claude Code
@@ -273,14 +292,49 @@ npm run test:coverage
 - **Moderate** (Default): Balanced protection with reasonable restrictions
 - **Strict**: Maximum protection, blocks borderline content
 
-### Configurable Security
-All security features can be individually enabled/disabled via environment variables:
+### Granular Security Configuration
+
+**Security Levels:**
+- `disabled` - No security checks (maximum performance)
+- `basic` - Essential protection only (good performance)
+- `moderate` - Balanced protection (default, good balance)
+- `strict` - Maximum protection (may impact performance)
+
+**Individual Feature Controls:**
 ```bash
-SECURITY_LEVEL=moderate              # Security level (basic/moderate/strict)
-BLOCK_EXPLICIT_CONTENT=true         # Content filtering
-DETECT_PROMPT_INJECTION=true        # Injection detection  
-SANITIZE_INPUT=true                  # Input sanitization
+# Master toggles
+SECURITY_LEVEL=moderate
+BLOCK_EXPLICIT_CONTENT=true
+DETECT_PROMPT_INJECTION=true
+SANITIZE_INPUT=true
+
+# Granular content filtering
+BLOCK_VIOLENCE=true                  # "how to kill", violence
+BLOCK_ILLEGAL_ACTIVITIES=true       # "how to hack", illegal acts
+BLOCK_ADULT_CONTENT=true            # Sexual/adult content
+
+# Granular injection detection
+DETECT_SYSTEM_PROMPTS=true           # "system: act as admin"
+DETECT_INSTRUCTION_OVERRIDE=true     # "ignore previous instructions"
+
+# Granular sanitization
+REMOVE_SCRIPTS=true                  # Remove <script> tags
+LIMIT_REPEATED_CHARS=true           # Prevent character flooding
+
+# Performance optimization
+ENABLE_PATTERN_CACHING=true         # Cache patterns for speed
+MAX_PROMPT_LENGTH_FOR_DEEP_SCAN=1000 # Skip intensive checks on long prompts
+
+# Flexibility options
+ALLOW_EDUCATIONAL_CONTENT=true      # Whitelist "research about", "explain"
+WHITELIST_PATTERNS="educational,academic" # Custom regex patterns
 ```
+
+**Performance Considerations:**
+- Pattern caching reduces regex compilation overhead
+- Long prompts (>1000 chars) get lighter scanning in basic mode  
+- Early termination stops checking after finding issues
+- Granular controls let you disable unneeded checks
 
 ### Best Practices
 - Never commit your `.env` file to version control
