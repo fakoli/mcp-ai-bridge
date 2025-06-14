@@ -7,11 +7,21 @@ on:
     paths:
       - 'src/**'
       - 'lib/**'
-      - '!**/*.md' # Exclude documentation-only changes
+      - '!**/*.md'
+      - '!**/package-lock.json'
+
+concurrency:
+  group: claude-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   claude-review:
     # Only run for fakoli user
-    if: github.event.pull_request.user.login == 'fakoli'
+    if: |
+      github.event.pull_request.user.login == 'fakoli' ||
+      github.event.pull_request.user.login == 'external-contributor' ||
+      github.event.pull_request.user.login == 'new-developer' ||
+      github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
     timeout-minutes: 30
