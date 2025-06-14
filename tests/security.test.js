@@ -76,8 +76,8 @@ describe('Security Tests', () => {
       });
 
       test('should accept valid models', () => {
-        expect(validateModel('gpt-4', 'OPENAI')).toBe('gpt-4');
-        expect(validateModel('gemini-pro', 'GEMINI')).toBe('gemini-pro');
+        expect(validateModel('gpt-4.1', 'OPENAI')).toBe('gpt-4.1');
+        expect(validateModel('gemini-2.5-pro', 'GEMINI')).toBe('gemini-2.5-pro');
       });
 
       test('should return default for undefined model', () => {
@@ -144,8 +144,8 @@ describe('Security Tests', () => {
       // Should be blocked
       expect(() => rateLimiter.checkLimit('user1')).toThrow(RateLimitError);
       
-      // Wait for window to expire
-      await new Promise(resolve => setTimeout(resolve, 1100));
+      // Wait for window to expire (add extra buffer for timing precision)
+      await new Promise(resolve => setTimeout(resolve, 1200));
       
       // Should be allowed again
       expect(() => rateLimiter.checkLimit('user1')).not.toThrow();

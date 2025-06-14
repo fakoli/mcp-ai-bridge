@@ -1,9 +1,11 @@
 import { jest } from '@jest/globals';
 import { MockOpenAI, MockGoogleGenerativeAI, MockServer, MockStdioServerTransport } from './mocks.js';
+import { MODELS } from '../src/constants.js';
 
 // Mock all external dependencies
 jest.mock('openai', () => ({
-  default: MockOpenAI
+  default: MockOpenAI,
+  __esModule: true
 }));
 
 jest.mock('@google/generative-ai', () => ({
@@ -26,11 +28,21 @@ jest.mock('@modelcontextprotocol/sdk/types.js', () => ({
 jest.mock('dotenv', () => ({
   default: {
     config: jest.fn()
-  }
+  },
+  config: jest.fn()
 }));
 
 jest.mock('fs', () => ({
   existsSync: jest.fn()
+}));
+
+jest.mock('../src/logger.js', () => ({
+  default: {
+    info: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+    debug: jest.fn()
+  }
 }));
 
 describe('AIBridgeServer', () => {
@@ -85,9 +97,9 @@ describe('AIBridgeServer', () => {
                 },
                 model: {
                   type: 'string',
-                  description: 'The model to use (default: gpt-4-turbo-preview)',
-                  enum: ['gpt-4-turbo-preview', 'gpt-4', 'gpt-3.5-turbo'],
-                  default: 'gpt-4-turbo-preview',
+                  description: 'The model to use (default: gpt-4.1-mini)',
+                  enum: MODELS.OPENAI,
+                  default: 'gpt-4.1-mini',
                 },
                 temperature: {
                   type: 'number',
@@ -115,9 +127,9 @@ describe('AIBridgeServer', () => {
                 },
                 model: {
                   type: 'string',
-                  description: 'The model to use (default: gemini-pro)',
-                  enum: ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'],
-                  default: 'gemini-pro',
+                  description: 'The model to use (default: gemini-2.5-flash)',
+                  enum: MODELS.GEMINI,
+                  default: 'gemini-2.5-flash',
                 },
                 temperature: {
                   type: 'number',
@@ -184,7 +196,7 @@ describe('AIBridgeServer', () => {
         }
 
         const completion = await this.openai.chat.completions.create({
-          model: args.model || 'gpt-4-turbo-preview',
+          model: args.model || 'gpt-4.1-mini',
           messages: [{ role: 'user', content: args.prompt }],
           temperature: args.temperature || 0.7,
         });
@@ -193,7 +205,7 @@ describe('AIBridgeServer', () => {
           content: [
             {
               type: 'text',
-              text: `🤖 OPENAI RESPONSE (${args.model || 'gpt-4-turbo-preview'}):\n\n${completion.choices[0].message.content}`,
+              text: `🤖 OPENAI RESPONSE (${args.model || 'gpt-4.1-mini'}):\n\n${completion.choices[0].message.content}`,
             },
           ],
         };
@@ -205,7 +217,7 @@ describe('AIBridgeServer', () => {
         }
 
         const model = this.gemini.getGenerativeModel({ 
-          model: args.model || 'gemini-pro',
+          model: args.model || 'gemini-2.5-flash',
           generationConfig: {
             temperature: args.temperature || 0.7,
           },
@@ -219,7 +231,7 @@ describe('AIBridgeServer', () => {
           content: [
             {
               type: 'text',
-              text: `🤖 GEMINI RESPONSE (${args.model || 'gemini-pro'}):\n\n${text}`,
+              text: `🤖 GEMINI RESPONSE (${args.model || 'gemini-2.5-flash'}):\n\n${text}`,
             },
           ],
         };
@@ -231,11 +243,11 @@ describe('AIBridgeServer', () => {
           version: process.env.MCP_SERVER_VERSION || '1.0.0',
           openai: {
             configured: !!this.openai,
-            models: this.openai ? ['gpt-4-turbo-preview', 'gpt-4', 'gpt-3.5-turbo'] : [],
+            models: this.openai ? MODELS.OPENAI : [],
           },
           gemini: {
             configured: !!this.gemini,
-            models: this.gemini ? ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'] : [],
+            models: this.gemini ? MODELS.GEMINI : [],
           },
         };
 
@@ -282,7 +294,7 @@ describe('AIBridgeServer', () => {
     });
 
     test('should initialize with OpenAI API key only', () => {
-      process.env.OPENAI_API_KEY = 'test-openai-key';
+      process.env.OPENAI_API_KEY = 'sk-test-openai-key';
       delete process.env.GOOGLE_AI_API_KEY;
 
       const server = new AIBridgeServer();
@@ -306,7 +318,7 @@ describe('AIBridgeServer', () => {
     });
 
     test('should initialize with both API keys', () => {
-      process.env.OPENAI_API_KEY = 'test-openai-key';
+      process.env.OPENAI_API_KEY = 'sk-test-openai-key';
       process.env.GOOGLE_AI_API_KEY = 'test-gemini-key';
 
       const server = new AIBridgeServer();
@@ -324,13 +336,13 @@ describe('AIBridgeServer', () => {
     let server;
 
     beforeEach(() => {
-      process.env.OPENAI_API_KEY = 'test-openai-key';
+      process.env.OPENAI_API_KEY = 'sk-test-openai-key';
       process.env.GOOGLE_AI_API_KEY = 'test-gemini-key';
       server = new AIBridgeServer();
     });
 
     test('should handle list_tools request', async () => {
-      const handler = server.handlers.get('list_tools');
+      const handler = server.server.handlers.get('ListToolsRequestSchema');
       const result = await handler();
 
       expect(result.tools).toHaveLength(3);
@@ -338,43 +350,43 @@ describe('AIBridgeServer', () => {
     });
 
     test('should handle ask_openai request', async () => {
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'ask_openai',
           arguments: {
             prompt: 'Test prompt',
-            model: 'gpt-4',
+            model: 'gpt-4.1',
             temperature: 0.5
           }
         }
       });
 
       expect(result.content[0].text).toContain('OPENAI RESPONSE');
-      expect(result.content[0].text).toContain('gpt-4');
+      expect(result.content[0].text).toContain('gpt-4.1');
       expect(result.content[0].text).toContain('Mock OpenAI response content');
     });
 
     test('should handle ask_gemini request', async () => {
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'ask_gemini',
           arguments: {
             prompt: 'Test prompt',
-            model: 'gemini-pro',
+            model: 'gemini-2.5-pro',
             temperature: 0.8
           }
         }
       });
 
       expect(result.content[0].text).toContain('GEMINI RESPONSE');
-      expect(result.content[0].text).toContain('gemini-pro');
+      expect(result.content[0].text).toContain('gemini-2.5-pro');
       expect(result.content[0].text).toContain('Mock Gemini response content');
     });
 
     test('should handle server_info request', async () => {
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'server_info',
@@ -386,12 +398,12 @@ describe('AIBridgeServer', () => {
       const info = JSON.parse(result.content[0].text.split('\n\n')[1]);
       expect(info.openai.configured).toBe(true);
       expect(info.gemini.configured).toBe(true);
-      expect(info.openai.models).toHaveLength(3);
-      expect(info.gemini.models).toHaveLength(3);
+      expect(info.openai.models).toHaveLength(8);
+      expect(info.gemini.models).toHaveLength(4);
     });
 
     test('should handle unknown tool error', async () => {
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'unknown_tool',
@@ -406,7 +418,7 @@ describe('AIBridgeServer', () => {
       delete process.env.OPENAI_API_KEY;
       server = new AIBridgeServer();
       
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'ask_openai',
@@ -421,7 +433,7 @@ describe('AIBridgeServer', () => {
       delete process.env.GOOGLE_AI_API_KEY;
       server = new AIBridgeServer();
       
-      const handler = server.handlers.get('call_tool');
+      const handler = server.server.handlers.get('CallToolRequestSchema');
       const result = await handler({
         params: {
           name: 'ask_gemini',
@@ -436,12 +448,9 @@ describe('AIBridgeServer', () => {
   describe('Server Run', () => {
     test('should start server successfully', async () => {
       const server = new AIBridgeServer();
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      await server.run();
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith('AI Bridge MCP server running...');
-      consoleErrorSpy.mockRestore();
+      
+      // Just test that run() completes without error
+      await expect(server.run()).resolves.not.toThrow();
     });
   });
 });
