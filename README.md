@@ -8,13 +8,16 @@ A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenA
 
 ## Features
 
-- **OpenAI Integration**: Access GPT-4.1, GPT-4.1 Mini, GPT-4.1 Nano, GPT-4o, GPT-4o Mini, and latest reasoning models (o3, o3-mini, o4-mini)
-- **Gemini Integration**: Access Gemini 2.5 Pro, Gemini 2.5 Flash with thinking capabilities, and Deep Think enhanced reasoning mode
+- **OpenAI Integration**: Access GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4, and reasoning models (o1, o1-mini, o1-pro, o3-mini)
+- **Gemini Integration**: Access Gemini 1.5 Pro, Gemini 1.5 Flash, and vision models with latest capabilities
 - **Security Features**: 
-  - Input validation and sanitization
-  - Rate limiting to prevent API abuse
-  - Secure error handling (no sensitive information exposure)
-  - API key format validation
+  - **Enhanced Input Validation**: Multi-layer validation with sanitization
+  - **Content Filtering**: Blocks explicit, harmful, and illegal content
+  - **Prompt Injection Detection**: Identifies and blocks manipulation attempts
+  - **Rate Limiting**: Prevents API abuse with configurable limits
+  - **Secure Error Handling**: No sensitive information exposure
+  - **API Key Validation**: Format validation for API keys
+  - **Configurable Security Levels**: Basic, Moderate, and Strict modes
 - **Robust Error Handling**: Specific error types with detailed messages
 - **Structured Logging**: Winston-based logging with configurable levels
 - **Flexible Configuration**: Control temperature and model selection for each request
@@ -62,6 +65,31 @@ The server will check for environment variables in this order:
    # Server identification
    MCP_SERVER_NAME=AI Bridge
    MCP_SERVER_VERSION=1.0.0
+   
+   # Security Configuration
+   SECURITY_LEVEL=moderate              # disabled, basic, moderate, strict
+   
+   # Content Filtering (granular controls)
+   BLOCK_EXPLICIT_CONTENT=true         # Master content filter toggle
+   BLOCK_VIOLENCE=true                  # Block violent content
+   BLOCK_ILLEGAL_ACTIVITIES=true       # Block illegal activity requests
+   BLOCK_ADULT_CONTENT=true             # Block adult/sexual content
+   
+   # Injection Detection (granular controls)
+   DETECT_PROMPT_INJECTION=true        # Master injection detection toggle
+   DETECT_SYSTEM_PROMPTS=true           # Detect system role injections
+   DETECT_INSTRUCTION_OVERRIDE=true     # Detect "ignore instructions" attempts
+   
+   # Input Sanitization (granular controls)
+   SANITIZE_INPUT=true                  # Master sanitization toggle
+   REMOVE_SCRIPTS=true                  # Remove script tags and JS
+   LIMIT_REPEATED_CHARS=true            # Limit DoS via repeated characters
+   
+   # Performance & Flexibility
+   ENABLE_PATTERN_CACHING=true          # Cache compiled patterns for speed
+   MAX_PROMPT_LENGTH_FOR_DEEP_SCAN=1000 # Skip deep scanning for long prompts
+   ALLOW_EDUCATIONAL_CONTENT=false      # Whitelist educational content
+   WHITELIST_PATTERNS=                  # Comma-separated regex patterns to allow
    ```
 
 ## Configuration in Claude Code
@@ -129,7 +157,7 @@ Query OpenAI models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini', 'o3', 'o3-mini', 'o4-mini' (default: 'gpt-4.1-mini')
+- `model` (optional): Choose from 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'o1', 'o1-mini', 'o1-pro', 'o3-mini', 'chatgpt-4o-latest', and other available models (default: 'gpt-4o-mini')
 - `temperature` (optional): Control randomness (0-2, default: 0.7)
 
 Security Features:
@@ -143,7 +171,7 @@ Query Google Gemini models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-pro-deep-think', 'gemini-2.5-flash-preview-05-20' (default: 'gemini-2.5-flash')
+- `model` (optional): Choose from 'gemini-1.5-pro-latest', 'gemini-1.5-pro-002', 'gemini-1.5-pro', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-1.5-flash-8b', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision' (default: 'gemini-1.5-flash-latest')
 - `temperature` (optional): Control randomness (0-1, default: 0.7)
 
 Security Features:
@@ -168,12 +196,12 @@ In Claude Code, you can use these tools like:
 ```
 mcp__ai-bridge__ask_openai
   prompt: "Explain the concept of recursion in programming"
-  model: "gpt-4.1"
+  model: "gpt-4o"
   temperature: 0.5
 
 mcp__ai-bridge__ask_gemini
   prompt: "What are the key differences between Python and JavaScript?"
-  model: "gemini-2.5-flash"
+  model: "gemini-1.5-flash-latest"
 
 mcp__ai-bridge__server_info
 ```
@@ -245,12 +273,68 @@ npm run test:coverage
 
 ## Security Features
 
-### Built-in Security
-- **Input Validation**: All prompts are validated for type, length, and content
+### Enhanced Security Protection
+- **Multi-Layer Input Validation**: Type, length, and content validation
+- **Content Filtering**: Blocks explicit, violent, illegal, and harmful content
+- **Prompt Injection Detection**: Identifies and prevents manipulation attempts including:
+  - Instruction override attempts ("ignore previous instructions")
+  - System role injection ("system: act as...")
+  - Template injection ({{system}}, <|system|>, [INST])
+  - Suspicious pattern detection
+- **Input Sanitization**: Removes control characters, scripts, and malicious patterns
 - **Rate Limiting**: 100 requests per minute by default to prevent API abuse
 - **API Key Validation**: Format validation for API keys before use
 - **Secure Error Handling**: No stack traces or sensitive information in error messages
 - **Structured Logging**: All operations are logged with appropriate levels
+
+### Security Levels
+- **Basic**: Minimal filtering, allows most content
+- **Moderate** (Default): Balanced protection with reasonable restrictions
+- **Strict**: Maximum protection, blocks borderline content
+
+### Granular Security Configuration
+
+**Security Levels:**
+- `disabled` - No security checks (maximum performance)
+- `basic` - Essential protection only (good performance)
+- `moderate` - Balanced protection (default, good balance)
+- `strict` - Maximum protection (may impact performance)
+
+**Individual Feature Controls:**
+```bash
+# Master toggles
+SECURITY_LEVEL=moderate
+BLOCK_EXPLICIT_CONTENT=true
+DETECT_PROMPT_INJECTION=true
+SANITIZE_INPUT=true
+
+# Granular content filtering
+BLOCK_VIOLENCE=true                  # "how to kill", violence
+BLOCK_ILLEGAL_ACTIVITIES=true       # "how to hack", illegal acts
+BLOCK_ADULT_CONTENT=true            # Sexual/adult content
+
+# Granular injection detection
+DETECT_SYSTEM_PROMPTS=true           # "system: act as admin"
+DETECT_INSTRUCTION_OVERRIDE=true     # "ignore previous instructions"
+
+# Granular sanitization
+REMOVE_SCRIPTS=true                  # Remove <script> tags
+LIMIT_REPEATED_CHARS=true           # Prevent character flooding
+
+# Performance optimization
+ENABLE_PATTERN_CACHING=true         # Cache patterns for speed
+MAX_PROMPT_LENGTH_FOR_DEEP_SCAN=1000 # Skip intensive checks on long prompts
+
+# Flexibility options
+ALLOW_EDUCATIONAL_CONTENT=true      # Whitelist "research about", "explain"
+WHITELIST_PATTERNS="educational,academic" # Custom regex patterns
+```
+
+**Performance Considerations:**
+- Pattern caching reduces regex compilation overhead
+- Long prompts (>1000 chars) get lighter scanning in basic mode  
+- Early termination stops checking after finding issues
+- Granular controls let you disable unneeded checks
 
 ### Best Practices
 - Never commit your `.env` file to version control
