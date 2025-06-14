@@ -2,6 +2,10 @@
 
 A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenAI and Google Gemini APIs.
 
+<a href="https://glama.ai/mcp/servers/@fakoli/mcp-ai-bridge">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@fakoli/mcp-ai-bridge/badge" alt="AI Bridge MCP server" />
+</a>
+
 ## Features
 
 - **OpenAI Integration**: Access GPT-4, GPT-4 Turbo, and GPT-3.5 Turbo models
