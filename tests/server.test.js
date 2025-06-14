@@ -398,7 +398,7 @@ describe('AIBridgeServer', () => {
       const info = JSON.parse(result.content[0].text.split('\n\n')[1]);
       expect(info.openai.configured).toBe(true);
       expect(info.gemini.configured).toBe(true);
-      expect(info.openai.models).toHaveLength(21);
+      expect(info.openai.models).toHaveLength(17);
       expect(info.gemini.models).toHaveLength(9);
     });
 
