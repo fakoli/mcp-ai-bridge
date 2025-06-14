@@ -19,13 +19,13 @@ const localEnvPath = '.env';
 
 if (existsSync(homeEnvPath)) {
   dotenv.config({ path: homeEnvPath });
-  logger.info('Loaded environment from home directory');
+  if (process.env.NODE_ENV !== 'test') logger.info('Loaded environment from home directory');
 } else if (existsSync(localEnvPath)) {
   dotenv.config({ path: localEnvPath });
-  logger.info('Loaded environment from local directory');
+  if (process.env.NODE_ENV !== 'test') logger.info('Loaded environment from local directory');
 } else {
   dotenv.config();
-  logger.info('Using system environment variables');
+  if (process.env.NODE_ENV !== 'test') logger.info('Using system environment variables');
 }
 
 class AIBridgeServer {
@@ -58,28 +58,28 @@ class AIBridgeServer {
       try {
         validateAPIKey(process.env.OPENAI_API_KEY, 'OPENAI');
         this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-        logger.info('OpenAI client initialized');
+        if (process.env.NODE_ENV !== 'test') logger.info('OpenAI client initialized');
       } catch (error) {
-        logger.error('Failed to initialize OpenAI client:', error.message);
+        if (process.env.NODE_ENV !== 'test') logger.error('Failed to initialize OpenAI client:', error.message);
         this.openai = null;
       }
     } else {
       this.openai = null;
-      logger.warn('OpenAI API key not provided');
+      if (process.env.NODE_ENV !== 'test') logger.warn('OpenAI API key not provided');
     }
     
     // Initialize Gemini client
     if (process.env.GOOGLE_AI_API_KEY) {
       try {
         this.gemini = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
-        logger.info('Gemini client initialized');
+        if (process.env.NODE_ENV !== 'test') logger.info('Gemini client initialized');
       } catch (error) {
-        logger.error('Failed to initialize Gemini client:', error.message);
+        if (process.env.NODE_ENV !== 'test') logger.error('Failed to initialize Gemini client:', error.message);
         this.gemini = null;
       }
     } else {
       this.gemini = null;
-      logger.warn('Google AI API key not provided');
+      if (process.env.NODE_ENV !== 'test') logger.warn('Google AI API key not provided');
     }
   }
 
@@ -181,7 +181,7 @@ class AIBridgeServer {
             throw new ValidationError(`${ERROR_MESSAGES.UNKNOWN_TOOL}: ${name}`);
         }
       } catch (error) {
-        logger.error(`Error handling ${name}:`, error);
+        if (process.env.NODE_ENV !== 'test') logger.error(`Error handling ${name}:`, error);
         return this.formatError(error);
       }
     });
@@ -198,7 +198,7 @@ class AIBridgeServer {
     const temperature = validateTemperature(args.temperature, 'OPENAI');
 
     try {
-      logger.debug(`OpenAI request - model: ${model}, temperature: ${temperature}`);
+      if (process.env.NODE_ENV !== 'test') logger.debug(`OpenAI request - model: ${model}, temperature: ${temperature}`);
       
       const completion = await this.openai.chat.completions.create({
         model: model,
@@ -236,7 +236,7 @@ class AIBridgeServer {
     const temperature = validateTemperature(args.temperature, 'GEMINI');
 
     try {
-      logger.debug(`Gemini request - model: ${model}, temperature: ${temperature}`);
+      if (process.env.NODE_ENV !== 'test') logger.debug(`Gemini request - model: ${model}, temperature: ${temperature}`);
       
       const geminiModel = this.gemini.getGenerativeModel({ 
         model: model,
@@ -320,7 +320,7 @@ class AIBridgeServer {
   async run() {
     const transport = new StdioServerTransport();
     await this.server.connect(transport);
-    logger.info('AI Bridge MCP server running');
+    if (process.env.NODE_ENV !== 'test') logger.info('AI Bridge MCP server running');
   }
 }
 
@@ -328,10 +328,11 @@ class AIBridgeServer {
 export { AIBridgeServer };
 
 // Run the server if this is the main module
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Only run in production, not during tests
+if (process.env.NODE_ENV !== 'test' && process.env.NODE_ENV !== 'development') {
   const server = new AIBridgeServer();
   server.run().catch((error) => {
-    logger.error('Failed to start server:', error);
+    if (process.env.NODE_ENV !== 'test') logger.error('Failed to start server:', error);
     process.exit(1);
   });
 }

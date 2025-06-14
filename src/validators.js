@@ -1,5 +1,5 @@
 import { ValidationError } from './errors.js';
-import { DEFAULTS, ERROR_MESSAGES } from './constants.js';
+import { DEFAULTS, ERROR_MESSAGES, MODELS } from './constants.js';
 
 export function validatePrompt(prompt) {
   if (!prompt || typeof prompt !== 'string') {
@@ -24,6 +24,11 @@ export function validateTemperature(temperature, service = 'OPENAI') {
     return DEFAULTS[service].TEMPERATURE;
   }
   
+  // Check if input is a valid number type (not array, object, etc.)
+  if (typeof temperature !== 'number' && typeof temperature !== 'string') {
+    throw new ValidationError(`${ERROR_MESSAGES.INVALID_TEMPERATURE}: must be a number`);
+  }
+  
   const temp = Number(temperature);
   
   if (isNaN(temp)) {
@@ -41,9 +46,7 @@ export function validateTemperature(temperature, service = 'OPENAI') {
 }
 
 export function validateModel(model, service = 'OPENAI') {
-  const models = service === 'OPENAI' 
-    ? ['gpt-4-turbo-preview', 'gpt-4', 'gpt-3.5-turbo']
-    : ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'];
+  const models = MODELS[service];
     
   if (!model) {
     return DEFAULTS[service].MODEL;

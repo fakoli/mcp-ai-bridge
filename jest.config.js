@@ -1,17 +1,14 @@
 export default {
   testEnvironment: 'node',
   transform: {
-    '^.+\\.js$': 'babel-jest',
+    '^.+\\.js$': ['babel-jest', { presets: [['@babel/preset-env', { targets: { node: 'current' } }]] }],
   },
   moduleNameMapper: {
     '^(\\.{1,2}/.*)\\.js$': '$1',
   },
-  extensionsToTreatAsEsm: ['.js'],
-  globals: {
-    'ts-jest': {
-      useESM: true,
-    },
-  },
+  transformIgnorePatterns: [
+    'node_modules/(?!(@modelcontextprotocol|openai|@google)/)'
+  ],
   testMatch: [
     '**/tests/**/*.test.js',
     '**/__tests__/**/*.test.js',

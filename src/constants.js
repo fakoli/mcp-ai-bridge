@@ -1,12 +1,12 @@
 export const DEFAULTS = {
   OPENAI: {
-    MODEL: 'gpt-4o-mini',
+    MODEL: 'gpt-4.1-mini',
     TEMPERATURE: 0.7,
     MAX_TEMPERATURE: 2,
     MIN_TEMPERATURE: 0
   },
   GEMINI: {
-    MODEL: 'gemini-pro',
+    MODEL: 'gemini-2.5-flash',
     TEMPERATURE: 0.7,
     MAX_TEMPERATURE: 1,
     MIN_TEMPERATURE: 0
@@ -33,6 +33,20 @@ export const ERROR_MESSAGES = {
 };
 
 export const MODELS = {
-  OPENAI: ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5-turbo'],
-  GEMINI: ['gemini-pro', 'gemini-1.5-pro', 'gemini-1.5-flash']
+  OPENAI: [
+    'gpt-4.1',
+    'gpt-4.1-mini', 
+    'gpt-4.1-nano',
+    'gpt-4o',
+    'gpt-4o-mini',
+    'o3',
+    'o3-mini',
+    'o4-mini'
+  ],
+  GEMINI: [
+    'gemini-2.5-pro',
+    'gemini-2.5-flash',
+    'gemini-2.5-pro-deep-think',
+    'gemini-2.5-flash-preview-05-20'
+  ]
 };

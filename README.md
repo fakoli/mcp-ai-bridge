@@ -8,8 +8,8 @@ A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenA
 
 ## Features
 
-- **OpenAI Integration**: Access GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4, and GPT-3.5 Turbo models
-- **Gemini Integration**: Access Gemini Pro, Gemini 1.5 Pro, and Gemini 1.5 Flash models
+- **OpenAI Integration**: Access GPT-4.1, GPT-4.1 Mini, GPT-4.1 Nano, GPT-4o, GPT-4o Mini, and latest reasoning models (o3, o3-mini, o4-mini)
+- **Gemini Integration**: Access Gemini 2.5 Pro, Gemini 2.5 Flash with thinking capabilities, and Deep Think enhanced reasoning mode
 - **Security Features**: 
   - Input validation and sanitization
   - Rate limiting to prevent API abuse
@@ -129,7 +129,7 @@ Query OpenAI models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', or 'gpt-3.5-turbo' (default: 'gpt-4o-mini')
+- `model` (optional): Choose from 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini', 'o3', 'o3-mini', 'o4-mini' (default: 'gpt-4.1-mini')
 - `temperature` (optional): Control randomness (0-2, default: 0.7)
 
 Security Features:
@@ -143,7 +143,7 @@ Query Google Gemini models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gemini-pro', 'gemini-1.5-pro', or 'gemini-1.5-flash' (default: 'gemini-pro')
+- `model` (optional): Choose from 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-pro-deep-think', 'gemini-2.5-flash-preview-05-20' (default: 'gemini-2.5-flash')
 - `temperature` (optional): Control randomness (0-1, default: 0.7)
 
 Security Features:
@@ -168,12 +168,12 @@ In Claude Code, you can use these tools like:
 ```
 mcp__ai-bridge__ask_openai
   prompt: "Explain the concept of recursion in programming"
-  model: "gpt-4o"
+  model: "gpt-4.1"
   temperature: 0.5
 
 mcp__ai-bridge__ask_gemini
   prompt: "What are the key differences between Python and JavaScript?"
-  model: "gemini-pro"
+  model: "gemini-2.5-flash"
 
 mcp__ai-bridge__server_info
 ```
