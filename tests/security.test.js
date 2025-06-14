@@ -76,8 +76,8 @@ describe('Security Tests', () => {
       });
 
       test('should accept valid models', () => {
-        expect(validateModel('gpt-4.1', 'OPENAI')).toBe('gpt-4.1');
-        expect(validateModel('gemini-2.5-pro', 'GEMINI')).toBe('gemini-2.5-pro');
+        expect(validateModel('gpt-4o', 'OPENAI')).toBe('gpt-4o');
+        expect(validateModel('gemini-1.5-pro-latest', 'GEMINI')).toBe('gemini-1.5-pro-latest');
       });
 
       test('should return default for undefined model', () => {

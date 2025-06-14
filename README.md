@@ -8,8 +8,8 @@ A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenA
 
 ## Features
 
-- **OpenAI Integration**: Access GPT-4.1, GPT-4.1 Mini, GPT-4.1 Nano, GPT-4o, GPT-4o Mini, and latest reasoning models (o3, o3-mini, o4-mini)
-- **Gemini Integration**: Access Gemini 2.5 Pro, Gemini 2.5 Flash with thinking capabilities, and Deep Think enhanced reasoning mode
+- **OpenAI Integration**: Access GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4, and reasoning models (o1, o1-mini, o1-pro, o3-mini)
+- **Gemini Integration**: Access Gemini 1.5 Pro, Gemini 1.5 Flash, and vision models with latest capabilities
 - **Security Features**: 
   - Input validation and sanitization
   - Rate limiting to prevent API abuse
@@ -129,7 +129,7 @@ Query OpenAI models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gpt-4.1', 'gpt-4.1-mini', 'gpt-4.1-nano', 'gpt-4o', 'gpt-4o-mini', 'o3', 'o3-mini', 'o4-mini' (default: 'gpt-4.1-mini')
+- `model` (optional): Choose from 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', 'o1', 'o1-mini', 'o1-pro', 'o3-mini', 'chatgpt-4o-latest', and other available models (default: 'gpt-4o-mini')
 - `temperature` (optional): Control randomness (0-2, default: 0.7)
 
 Security Features:
@@ -143,7 +143,7 @@ Query Google Gemini models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.5-pro-deep-think', 'gemini-2.5-flash-preview-05-20' (default: 'gemini-2.5-flash')
+- `model` (optional): Choose from 'gemini-1.5-pro-latest', 'gemini-1.5-pro-002', 'gemini-1.5-pro', 'gemini-1.5-flash-latest', 'gemini-1.5-flash', 'gemini-1.5-flash-002', 'gemini-1.5-flash-8b', 'gemini-1.0-pro-vision-latest', 'gemini-pro-vision' (default: 'gemini-1.5-flash-latest')
 - `temperature` (optional): Control randomness (0-1, default: 0.7)
 
 Security Features:
@@ -168,12 +168,12 @@ In Claude Code, you can use these tools like:
 ```
 mcp__ai-bridge__ask_openai
   prompt: "Explain the concept of recursion in programming"
-  model: "gpt-4.1"
+  model: "gpt-4o"
   temperature: 0.5
 
 mcp__ai-bridge__ask_gemini
   prompt: "What are the key differences between Python and JavaScript?"
-  model: "gemini-2.5-flash"
+  model: "gemini-1.5-flash-latest"
 
 mcp__ai-bridge__server_info
 ```

@@ -97,9 +97,9 @@ describe('AIBridgeServer', () => {
                 },
                 model: {
                   type: 'string',
-                  description: 'The model to use (default: gpt-4.1-mini)',
+                  description: 'The model to use (default: gpt-4o-mini)',
                   enum: MODELS.OPENAI,
-                  default: 'gpt-4.1-mini',
+                  default: 'gpt-4o-mini',
                 },
                 temperature: {
                   type: 'number',
@@ -127,9 +127,9 @@ describe('AIBridgeServer', () => {
                 },
                 model: {
                   type: 'string',
-                  description: 'The model to use (default: gemini-2.5-flash)',
+                  description: 'The model to use (default: gemini-1.5-flash-latest)',
                   enum: MODELS.GEMINI,
-                  default: 'gemini-2.5-flash',
+                  default: 'gemini-1.5-flash-latest',
                 },
                 temperature: {
                   type: 'number',
@@ -196,7 +196,7 @@ describe('AIBridgeServer', () => {
         }
 
         const completion = await this.openai.chat.completions.create({
-          model: args.model || 'gpt-4.1-mini',
+          model: args.model || 'gpt-4o-mini',
           messages: [{ role: 'user', content: args.prompt }],
           temperature: args.temperature || 0.7,
         });
@@ -205,7 +205,7 @@ describe('AIBridgeServer', () => {
           content: [
             {
               type: 'text',
-              text: `🤖 OPENAI RESPONSE (${args.model || 'gpt-4.1-mini'}):\n\n${completion.choices[0].message.content}`,
+              text: `🤖 OPENAI RESPONSE (${args.model || 'gpt-4o-mini'}):\n\n${completion.choices[0].message.content}`,
             },
           ],
         };
@@ -217,7 +217,7 @@ describe('AIBridgeServer', () => {
         }
 
         const model = this.gemini.getGenerativeModel({ 
-          model: args.model || 'gemini-2.5-flash',
+          model: args.model || 'gemini-1.5-flash-latest',
           generationConfig: {
             temperature: args.temperature || 0.7,
           },
@@ -231,7 +231,7 @@ describe('AIBridgeServer', () => {
           content: [
             {
               type: 'text',
-              text: `🤖 GEMINI RESPONSE (${args.model || 'gemini-2.5-flash'}):\n\n${text}`,
+              text: `🤖 GEMINI RESPONSE (${args.model || 'gemini-1.5-flash-latest'}):\n\n${text}`,
             },
           ],
         };
@@ -356,14 +356,14 @@ describe('AIBridgeServer', () => {
           name: 'ask_openai',
           arguments: {
             prompt: 'Test prompt',
-            model: 'gpt-4.1',
+            model: 'gpt-4o',
             temperature: 0.5
           }
         }
       });
 
       expect(result.content[0].text).toContain('OPENAI RESPONSE');
-      expect(result.content[0].text).toContain('gpt-4.1');
+      expect(result.content[0].text).toContain('gpt-4o');
       expect(result.content[0].text).toContain('Mock OpenAI response content');
     });
 
@@ -374,14 +374,14 @@ describe('AIBridgeServer', () => {
           name: 'ask_gemini',
           arguments: {
             prompt: 'Test prompt',
-            model: 'gemini-2.5-pro',
+            model: 'gemini-1.5-pro-latest',
             temperature: 0.8
           }
         }
       });
 
       expect(result.content[0].text).toContain('GEMINI RESPONSE');
-      expect(result.content[0].text).toContain('gemini-2.5-pro');
+      expect(result.content[0].text).toContain('gemini-1.5-pro-latest');
       expect(result.content[0].text).toContain('Mock Gemini response content');
     });
 
@@ -398,8 +398,8 @@ describe('AIBridgeServer', () => {
       const info = JSON.parse(result.content[0].text.split('\n\n')[1]);
       expect(info.openai.configured).toBe(true);
       expect(info.gemini.configured).toBe(true);
-      expect(info.openai.models).toHaveLength(8);
-      expect(info.gemini.models).toHaveLength(4);
+      expect(info.openai.models).toHaveLength(21);
+      expect(info.gemini.models).toHaveLength(9);
     });
 
     test('should handle unknown tool error', async () => {
