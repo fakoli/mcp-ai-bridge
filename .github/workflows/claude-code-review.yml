@@ -16,11 +16,11 @@ concurrency:
 
 jobs:
   claude-review:
-    # Only run for fakoli user
+    # Only run for repository owners, members, and first-time contributors
     if: |
-      github.event.pull_request.user.login == 'fakoli' ||
-      github.event.pull_request.user.login == 'external-contributor' ||
-      github.event.pull_request.user.login == 'new-developer' ||
+      github.event.pull_request.author_association == 'OWNER' ||
+      github.event.pull_request.author_association == 'MEMBER' ||
+      github.event.pull_request.author_association == 'COLLABORATOR' ||
       github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
