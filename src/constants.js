@@ -29,7 +29,10 @@ export const ERROR_MESSAGES = {
   UNKNOWN_TOOL: 'Unknown tool',
   RATE_LIMIT_EXCEEDED: 'Rate limit exceeded. Please try again later.',
   INVALID_TEMPERATURE: 'Invalid temperature value',
-  API_ERROR: 'API request failed'
+  API_ERROR: 'API request failed',
+  SECURITY_VIOLATION: 'Security check failed: content violates safety policies',
+  PROMPT_INJECTION: 'Security check failed: potential prompt injection detected',
+  EXPLICIT_CONTENT: 'Security check failed: explicit or harmful content detected'
 };
 
 export const MODELS = {

@@ -1,5 +1,6 @@
 import { ValidationError } from './errors.js';
 import { DEFAULTS, ERROR_MESSAGES, MODELS } from './constants.js';
+import { securityCheck } from './security.js';
 
 export function validatePrompt(prompt) {
   if (!prompt || typeof prompt !== 'string') {
@@ -16,7 +17,10 @@ export function validatePrompt(prompt) {
     throw new ValidationError(ERROR_MESSAGES.PROMPT_TOO_LONG);
   }
   
-  return trimmedPrompt;
+  // Apply security checks (sanitization, content filtering, injection detection)
+  const securePrompt = securityCheck(trimmedPrompt);
+  
+  return securePrompt;
 }
 
 export function validateTemperature(temperature, service = 'OPENAI') {

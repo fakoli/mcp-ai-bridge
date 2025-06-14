@@ -11,10 +11,13 @@ A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenA
 - **OpenAI Integration**: Access GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4, and reasoning models (o1, o1-mini, o1-pro, o3-mini)
 - **Gemini Integration**: Access Gemini 1.5 Pro, Gemini 1.5 Flash, and vision models with latest capabilities
 - **Security Features**: 
-  - Input validation and sanitization
-  - Rate limiting to prevent API abuse
-  - Secure error handling (no sensitive information exposure)
-  - API key format validation
+  - **Enhanced Input Validation**: Multi-layer validation with sanitization
+  - **Content Filtering**: Blocks explicit, harmful, and illegal content
+  - **Prompt Injection Detection**: Identifies and blocks manipulation attempts
+  - **Rate Limiting**: Prevents API abuse with configurable limits
+  - **Secure Error Handling**: No sensitive information exposure
+  - **API Key Validation**: Format validation for API keys
+  - **Configurable Security Levels**: Basic, Moderate, and Strict modes
 - **Robust Error Handling**: Specific error types with detailed messages
 - **Structured Logging**: Winston-based logging with configurable levels
 - **Flexible Configuration**: Control temperature and model selection for each request
@@ -62,6 +65,12 @@ The server will check for environment variables in this order:
    # Server identification
    MCP_SERVER_NAME=AI Bridge
    MCP_SERVER_VERSION=1.0.0
+   
+   # Security Configuration
+   SECURITY_LEVEL=moderate              # basic, moderate, strict
+   BLOCK_EXPLICIT_CONTENT=true         # Enable content filtering
+   DETECT_PROMPT_INJECTION=true        # Enable injection detection
+   SANITIZE_INPUT=true                  # Enable input sanitization
    ```
 
 ## Configuration in Claude Code
@@ -245,12 +254,33 @@ npm run test:coverage
 
 ## Security Features
 
-### Built-in Security
-- **Input Validation**: All prompts are validated for type, length, and content
+### Enhanced Security Protection
+- **Multi-Layer Input Validation**: Type, length, and content validation
+- **Content Filtering**: Blocks explicit, violent, illegal, and harmful content
+- **Prompt Injection Detection**: Identifies and prevents manipulation attempts including:
+  - Instruction override attempts ("ignore previous instructions")
+  - System role injection ("system: act as...")
+  - Template injection ({{system}}, <|system|>, [INST])
+  - Suspicious pattern detection
+- **Input Sanitization**: Removes control characters, scripts, and malicious patterns
 - **Rate Limiting**: 100 requests per minute by default to prevent API abuse
 - **API Key Validation**: Format validation for API keys before use
 - **Secure Error Handling**: No stack traces or sensitive information in error messages
 - **Structured Logging**: All operations are logged with appropriate levels
+
+### Security Levels
+- **Basic**: Minimal filtering, allows most content
+- **Moderate** (Default): Balanced protection with reasonable restrictions
+- **Strict**: Maximum protection, blocks borderline content
+
+### Configurable Security
+All security features can be individually enabled/disabled via environment variables:
+```bash
+SECURITY_LEVEL=moderate              # Security level (basic/moderate/strict)
+BLOCK_EXPLICIT_CONTENT=true         # Content filtering
+DETECT_PROMPT_INJECTION=true        # Injection detection  
+SANITIZE_INPUT=true                  # Input sanitization
+```
 
 ### Best Practices
 - Never commit your `.env` file to version control
