@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 import { MockOpenAI, MockGoogleGenerativeAI, MockServer, MockStdioServerTransport } from './mocks.js';
+import { MODELS } from '../src/constants.js';
 
 // Mock all external dependencies
 jest.mock('openai', () => ({
@@ -97,7 +98,7 @@ describe('AIBridgeServer', () => {
                 model: {
                   type: 'string',
                   description: 'The model to use (default: gpt-4.1-mini)',
-                  enum: ['gpt-4.1-mini', 'gpt-4.1', 'gpt-4o-mini'],
+                  enum: MODELS.OPENAI,
                   default: 'gpt-4.1-mini',
                 },
                 temperature: {
@@ -127,7 +128,7 @@ describe('AIBridgeServer', () => {
                 model: {
                   type: 'string',
                   description: 'The model to use (default: gemini-2.5-flash)',
-                  enum: ['gemini-2.5-flash', 'gemini-2.5-pro'],
+                  enum: MODELS.GEMINI,
                   default: 'gemini-2.5-flash',
                 },
                 temperature: {
@@ -242,11 +243,11 @@ describe('AIBridgeServer', () => {
           version: process.env.MCP_SERVER_VERSION || '1.0.0',
           openai: {
             configured: !!this.openai,
-            models: this.openai ? ['gpt-4.1-mini', 'gpt-4.1', 'gpt-4o-mini'] : [],
+            models: this.openai ? MODELS.OPENAI : [],
           },
           gemini: {
             configured: !!this.gemini,
-            models: this.gemini ? ['gemini-2.5-flash', 'gemini-2.5-pro'] : [],
+            models: this.gemini ? MODELS.GEMINI : [],
           },
         };
 
