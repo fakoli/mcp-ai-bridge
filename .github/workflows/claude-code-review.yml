@@ -4,12 +4,10 @@ on:
   pull_request:
     types: [opened, synchronize]
     # Optional: Only run on specific file changes
-    # paths:
-    #   - "src/**/*.ts"
-    #   - "src/**/*.tsx"
-    #   - "src/**/*.js"
-    #   - "src/**/*.jsx"
-
+    paths:
+      - 'src/**'
+      - 'lib/**'
+      - '!**/*.md' # Exclude documentation-only changes
 jobs:
   claude-review:
     # Only run for fakoli user
@@ -69,4 +67,6 @@ jobs:
           # Optional: Skip review for certain conditions
           if: |
             !contains(github.event.pull_request.title, '[skip-review]') &&
-            !contains(github.event.pull_request.title, '[WIP]')
+            !contains(github.event.pull_request.title, '[WIP]') &&
+            !contains(github.event.pull_request.title, 'chore:') &&
+            github.event.pull_request.changed_files > 0
