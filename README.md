@@ -8,7 +8,7 @@ A secure Model Context Protocol (MCP) server that bridges Claude Code with OpenA
 
 ## Features
 
-- **OpenAI Integration**: Access GPT-4, GPT-4 Turbo, and GPT-3.5 Turbo models
+- **OpenAI Integration**: Access GPT-4o, GPT-4o Mini, GPT-4 Turbo, GPT-4, and GPT-3.5 Turbo models
 - **Gemini Integration**: Access Gemini Pro, Gemini 1.5 Pro, and Gemini 1.5 Flash models
 - **Security Features**: 
   - Input validation and sanitization
@@ -51,7 +51,7 @@ npm install
 
 The server will check for environment variables in this order:
 1. `~/.env` (your home directory)
-2. `./env` (local to mcp-ai-bridge directory)
+2. `./.env` (local to mcp-ai-bridge directory)
 3. System environment variables
 
 4. **Optional Configuration Variables**:
@@ -129,7 +129,7 @@ Query OpenAI models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', or 'gpt-3.5-turbo'
+- `model` (optional): Choose from 'gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-4', or 'gpt-3.5-turbo' (default: 'gpt-4o-mini')
 - `temperature` (optional): Control randomness (0-2, default: 0.7)
 
 Security Features:
@@ -143,7 +143,7 @@ Query Google Gemini models with full validation and security features.
 
 Parameters:
 - `prompt` (required): The question or prompt to send (max 10,000 characters)
-- `model` (optional): Choose from 'gemini-pro', 'gemini-1.5-pro', or 'gemini-1.5-flash'
+- `model` (optional): Choose from 'gemini-pro', 'gemini-1.5-pro', or 'gemini-1.5-flash' (default: 'gemini-pro')
 - `temperature` (optional): Control randomness (0-1, default: 0.7)
 
 Security Features:
