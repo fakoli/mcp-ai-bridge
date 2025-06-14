@@ -1,0 +1,28 @@
+{
+  "name": "mcp-ai-bridge",
+  "version": "1.0.0",
+  "description": "MCP server for bridging Claude Code with OpenAI and Gemini APIs",
+  "main": "src/index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "test": "NODE_ENV=test jest",
+    "test:watch": "NODE_ENV=test jest --watch",
+    "test:coverage": "NODE_ENV=test jest --coverage"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.5.0",
+    "openai": "^4.56.0",
+    "@google/generative-ai": "^0.7.1",
+    "dotenv": "^16.4.5",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "@babel/preset-env": "^7.23.0",
+    "babel-jest": "^29.7.0"
+  },
+  "keywords": ["mcp", "claude", "openai", "gemini", "ai"],
+  "author": "",
+  "license": "MIT"
+}
