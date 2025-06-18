@@ -295,7 +295,8 @@ npm run test:coverage
 ### Granular Security Configuration
 
 **Security Levels:**
-- `disabled` - No security checks (maximum performance)
+- `disabled` - No security checks (maximum performance).
+  **CRITICAL WARNING:** Setting `SECURITY_LEVEL=disabled` turns off ALL security checks, including input sanitization, prompt injection detection, and content filtering. This makes the application EXTREMELY VULNERABLE and should ONLY be used in completely isolated, trusted environments for specific debugging or performance testing purposes. **DO NOT use this setting in production or any environment exposed to untrusted input.**
 - `basic` - Essential protection only (good performance)
 - `moderate` - Balanced protection (default, good balance)
 - `strict` - Maximum protection (may impact performance)

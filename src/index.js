@@ -13,19 +13,21 @@ import { AIBridgeError, ValidationError, ConfigurationError, APIError } from './
 import { validatePrompt, validateTemperature, validateModel, validateAPIKey } from './validators.js';
 import { RateLimiter } from './rateLimiter.js';
 
-// Try to load .env from multiple locations in order of priority
-const homeEnvPath = join(homedir(), '.env');
-const localEnvPath = '.env';
+if (process.env.NODE_ENV !== 'test') {
+  // Try to load .env from multiple locations in order of priority
+  const homeEnvPath = join(homedir(), '.env');
+  const localEnvPath = '.env';
 
-if (existsSync(homeEnvPath)) {
-  dotenv.config({ path: homeEnvPath });
-  if (process.env.NODE_ENV !== 'test') logger.info('Loaded environment from home directory');
-} else if (existsSync(localEnvPath)) {
-  dotenv.config({ path: localEnvPath });
-  if (process.env.NODE_ENV !== 'test') logger.info('Loaded environment from local directory');
-} else {
-  dotenv.config();
-  if (process.env.NODE_ENV !== 'test') logger.info('Using system environment variables');
+  if (existsSync(homeEnvPath)) {
+    dotenv.config({ path: homeEnvPath });
+    logger.info('Loaded environment from home directory');
+  } else if (existsSync(localEnvPath)) {
+    dotenv.config({ path: localEnvPath });
+    logger.info('Loaded environment from local directory');
+  } else {
+    dotenv.config();
+    logger.info('Using system environment variables');
+  }
 }
 
 class AIBridgeServer {
@@ -52,6 +54,12 @@ class AIBridgeServer {
     this.tools = this.getAvailableTools();
   }
 
+  /**
+   * Initializes the OpenAI and Google Gemini API clients.
+   * This method checks for the presence of API keys in environment variables
+   * and sets up the respective SDK instances if keys are available.
+   * Logs warnings if keys are missing or errors if initialization fails.
+   */
   initializeClients() {
     // Initialize OpenAI client
     if (process.env.OPENAI_API_KEY) {
@@ -163,12 +171,30 @@ class AIBridgeServer {
       tools: this.tools,
     }));
 
+    /**
+     * Handles incoming 'CallToolRequestSchema' requests from the MCP client.
+     * The overall flow is:
+     * 1. Identify client for rate limiting.
+     * 2. Perform rate limit check.
+     * 3. Dispatch the request to the appropriate tool handler (ask_openai, ask_gemini, server_info)
+     *    based on the 'name' parameter from the request.
+     * 4. The specific handler processes the request (validates inputs, calls the respective AI API).
+     * 5. Format a success response with the tool's output or an error response if issues occur.
+     */
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       const { name, arguments: args } = request.params;
 
       try {
-        // Check rate limit
-        this.rateLimiter.checkLimit();
+        // Determine client identifier for rate limiting
+        let clientId = "MCP_CLIENT"; // Default to server-wide if no specific ID found
+        if (request.context && request.context.clientId) {
+          clientId = request.context.clientId;
+        } else if (request.from) {
+          clientId = request.from;
+        }
+        // Rate limiting is per client if a clientId is available,
+        // otherwise it's server-wide (which is a limitation).
+        this.rateLimiter.checkLimit(clientId);
         
         switch (name) {
           case 'ask_openai':
@@ -220,6 +246,7 @@ class AIBridgeServer {
       } else if (error.status === 401) {
         throw new ConfigurationError('Invalid OpenAI API key');
       } else {
+        // TODO: Consider checking for other specific OpenAI error statuses (e.g., 400, 500, 503) if more granular user feedback is needed.
         throw new APIError(`OpenAI API error: ${error.message}`, 'OpenAI');
       }
     }
@@ -258,10 +285,11 @@ class AIBridgeServer {
         ],
       };
     } catch (error) {
-      if (error.message?.includes('quota')) {
+      const errorMessage = error.message?.toLowerCase() || '';
+      if (error.status === 429 || error.code === 'RESOURCE_EXHAUSTED' || errorMessage.includes('quota')) {
         throw new APIError('Gemini quota exceeded. Please try again later.', 'Gemini');
-      } else if (error.message?.includes('API key')) {
-        throw new ConfigurationError('Invalid Gemini API key');
+      } else if (error.status === 401 || error.status === 403 || error.code === 'PERMISSION_DENIED' || errorMessage.includes('api key') || errorMessage.includes('permission denied')) {
+        throw new ConfigurationError('Invalid Gemini API key or permission issue');
       } else {
         throw new APIError(`Gemini API error: ${error.message}`, 'Gemini');
       }
@@ -301,6 +329,14 @@ class AIBridgeServer {
     };
   }
 
+  /**
+   * Formats error messages for user-facing responses.
+   * It ensures that sensitive information like stack traces is not exposed.
+   * If the error is an instance of AIBridgeError (a custom error type for this application),
+   * its message is used directly. Otherwise, a generic error message is provided.
+   * @param {Error} error - The error object to format.
+   * @returns {object} A formatted error response object suitable for the MCP client.
+   */
   formatError(error) {
     // Don't expose stack traces or sensitive information
     const message = error instanceof AIBridgeError 

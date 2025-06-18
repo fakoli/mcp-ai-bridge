@@ -30,16 +30,27 @@ describe('Security Tests', () => {
       test('should accept valid prompts', () => {
         expect(validatePrompt('Valid prompt')).toBe('Valid prompt');
         expect(validatePrompt('  Trimmed prompt  ')).toBe('Trimmed prompt');
-        // Note: Repeated characters are limited by sanitization to 10 chars max
+        // This assertion checks the sanitization rule that limits long sequences of
+        // identical repeated characters (e.g., 'aaaaa...') to a shorter sequence
+        // (e.g., 10 repetitions if the original sequence was >= 100, as per sanitizeInput).
+        // DEFAULTS.PROMPT.MAX_LENGTH is used here to generate a very long string of 'a's.
         expect(validatePrompt('a'.repeat(DEFAULTS.PROMPT.MAX_LENGTH))).toHaveLength(10);
       });
 
       test('should handle special characters safely', () => {
-        // Script tags are now removed by sanitization
+        // Script tags are removed by sanitization, effectively preventing XSS via this vector.
         const specialChars = '<script>alert("xss")</script>';
         expect(validatePrompt(specialChars)).toBe('');
         
-        // SQL injection patterns are allowed (not web context)
+        // Regarding SQL injection:
+        // Basic sanitization (like removing null bytes, some control characters) occurs.
+        // However, specific SQL metacharacters (e.g., single quotes, hyphens) are NOT
+        // explicitly escaped or removed by the current sanitizeInput function beyond
+        // the general control character removal.
+        // The responsibility for preventing SQL injection rests with how the prompt data
+        // is handled downstream (e.g., using parameterized queries or proper escaping)
+        // if it's ever used in database queries. This function focuses on prompt content safety
+        // for LLMs, not as a universal SQL sanitizer.
         const sqlInjection = "'; DROP TABLE users; --";
         expect(validatePrompt(sqlInjection)).toBe(sqlInjection);
       });

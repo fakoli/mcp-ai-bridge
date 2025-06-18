@@ -69,6 +69,10 @@ export function validateAPIKey(key, service) {
   }
   
   if (service === 'OPENAI' && !key.startsWith('sk-')) {
+    // This check targets the common format for user-generated OpenAI secret keys (e.g., 'sk-xxxxxxxx').
+    // Other OpenAI key formats (e.g., for specific programs, older service-specific keys, or temporary keys)
+    // might exist but are not explicitly supported by this basic validation.
+    // This strict check helps prevent accidental usage of incorrect key types or malformed keys.
     throw new ValidationError('Invalid OpenAI API key format');
   }
   

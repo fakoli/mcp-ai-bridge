@@ -10,8 +10,20 @@ export const SECURITY_LEVELS = {
 
 // Granular security configuration with individual feature flags
 function getSecurityConfig() {
+  const level = process.env.SECURITY_LEVEL || SECURITY_LEVELS.MODERATE;
+  if (level === SECURITY_LEVELS.DISABLED && process.env.NODE_ENV !== 'test') {
+    console.warn('*****************************************************************');
+    console.warn('* CRITICAL SECURITY WARNING:                                  *');
+    console.warn('*   SECURITY_LEVEL is set to "disabled".                      *');
+    console.warn('*   ALL security features (sanitization, injection detection, *');
+    console.warn('*   content filtering) are BYPASSED.                          *');
+    console.warn('*   The application is EXTREMELY VULNERABLE.                  *');
+    console.warn('*   DO NOT use this setting in production or with untrusted   *');
+    console.warn('*   input.                                                    *');
+    console.warn('*****************************************************************');
+  }
   return {
-    LEVEL: process.env.SECURITY_LEVEL || SECURITY_LEVELS.MODERATE,
+    LEVEL: level,
     
     // Content filtering options
     BLOCK_EXPLICIT_CONTENT: process.env.BLOCK_EXPLICIT_CONTENT !== 'false',
@@ -39,7 +51,12 @@ function getSecurityConfig() {
   };
 }
 
-// Cached compiled patterns for better performance
+/**
+ * @class PatternCache
+ * Caches compiled regular expression patterns based on the current security configuration.
+ * This avoids recompiling regexes on every call, significantly improving performance,
+ * especially when security settings are stable. The cache invalidates if security config changes.
+ */
 class PatternCache {
   constructor() {
     this.cache = new Map();
@@ -60,6 +77,13 @@ class PatternCache {
     return this.compiledPatterns;
   }
 
+  /**
+   * Dynamically builds lists of regular expression patterns for various security checks.
+   * The patterns included depend on the active security settings in the provided 'config'
+   * (e.g., whether to detect prompt injection, block violence, etc.).
+   * @param {object} config - The current security configuration.
+   * @returns {object} An object containing arrays of compiled regex patterns.
+   */
   compilePatterns(config) {
     const patterns = {
       injection: [],
@@ -208,7 +232,13 @@ export function sanitizeInput(input) {
 }
 
 /**
- * Fast pattern matching with early termination
+ * Performs fast pattern matching against a given text using a list of regex patterns.
+ * It supports early termination after a specified number of matches (`maxMatches`)
+ * to optimize performance, as often only the first few matches are needed.
+ * @param {string} text - The text to scan.
+ * @param {Array<Object>} patterns - An array of pattern objects, each with a 'regex' property.
+ * @param {number} [maxMatches=3] - The maximum number of matches to find before stopping.
+ * @returns {Array<Object>} An array of matched pattern objects.
  */
 function fastPatternMatch(text, patterns, maxMatches = 3) {
   const matches = [];
@@ -415,7 +445,9 @@ export function securityCheck(prompt) {
 }
 
 /**
- * Performance monitoring utilities
+ * Provides statistics about the security module, including pattern cache status
+ * and the current security configuration. Useful for debugging and monitoring.
+ * @returns {object} An object containing security statistics.
  */
 export function getSecurityStats() {
   return {
@@ -428,7 +460,8 @@ export function getSecurityStats() {
 }
 
 /**
- * Reset pattern cache (useful for testing or config changes)
+ * Resets the compiled pattern cache. This is useful primarily for testing scenarios
+ * where security configurations are changed dynamically, to ensure fresh patterns are used.
  */
 export function resetPatternCache() {
   patternCache.cache.clear();
@@ -438,4 +471,54 @@ export function resetPatternCache() {
 
 // Export for backward compatibility
 export const SECURITY_CONFIG = getSecurityConfig();
-export { detectPromptInjection, filterExplicitContent } from './security.js';
+
+export function detectPromptInjection(prompt) {
+  const config = getSecurityConfig();
+  if (!config.DETECT_PROMPT_INJECTION || config.LEVEL === SECURITY_LEVELS.DISABLED) {
+    return { isInjection: false, patterns: [] };
+  }
+
+  const patterns = patternCache.getCompiledPatterns();
+  // Combine injection and suspicious patterns for detection
+  const combinedPatterns = [...patterns.injection, ...patterns.suspicious];
+  const matches = fastPatternMatch(prompt, combinedPatterns);
+
+  let isInjection = false;
+  let confidence = 'none';
+
+  if (matches.length > 0) {
+    isInjection = true;
+    // Determine confidence based on the highest severity match
+    if (matches.some(m => m.severity === 'high')) {
+      confidence = 'high';
+    } else if (matches.some(m => m.severity === 'medium')) {
+      confidence = 'medium';
+    } else {
+      confidence = 'low'; // Should not happen with current patterns
+    }
+  }
+
+  return {
+    isInjection,
+    patterns: matches.map(m => ({ type: m.type, confidence: m.severity })), // Map to desired output format
+    confidence
+  };
+}
+
+export function filterExplicitContent(prompt) {
+  const config = getSecurityConfig();
+  if (!config.BLOCK_EXPLICIT_CONTENT || config.LEVEL === SECURITY_LEVELS.DISABLED) {
+    return { isBlocked: false, reasons: [] };
+  }
+
+  const patterns = patternCache.getCompiledPatterns();
+  const matches = fastPatternMatch(prompt, patterns.explicit);
+
+  const isBlocked = matches.length > 0;
+
+  return {
+    isBlocked,
+    reasons: matches.map(m => ({ type: m.type, details: `Matched pattern for ${m.type}` })), // Map to desired output format
+    securityLevel: config.LEVEL
+  };
+}
